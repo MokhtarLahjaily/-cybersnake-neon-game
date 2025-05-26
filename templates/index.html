@@ -15,6 +15,8 @@
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
             font-family: 'Arial', sans-serif;
+            padding: 10px;
+            box-sizing: border-box;
         }
         
         @keyframes gradientBG {
@@ -33,18 +35,22 @@
             backdrop-filter: blur(10px);
             border-radius: 15px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 400px;
         }
 
         #game-container {
             display: none;
             flex-direction: column;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
             padding: 20px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 15px;
             box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 450px;
         }
 
         #game {
@@ -52,8 +58,10 @@
             border: 2px solid #00ff88;
             display: grid;
             grid-template-columns: repeat(20, 1fr);
-            width: 400px;
-            height: 400px;
+            width: 100%;
+            max-width: 360px;
+            height: 360px;
+            touch-action: manipulation;
         }
 
         .cell {
@@ -84,15 +92,69 @@
         }
 
         #score {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: bold;
             color: #00ff88;
             text-shadow: 0 0 10px #00ff88;
         }
 
-        #controls {
+        /* CONTRÔLES MOBILES - TOUJOURS VISIBLES */
+        #mobile-controls {
             display: flex;
-            gap: 10px;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(0, 255, 136, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .mobile-btn-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mobile-btn-row {
+            display: flex;
+            gap: 25px;
+            align-items: center;
+        }
+
+        .mobile-btn {
+            width: 60px;
+            height: 60px;
+            font-size: 28px;
+            background: rgba(0, 255, 136, 0.2);
+            border: 3px solid #00ff88;
+            border-radius: 50%;
+            color: #00ff88;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+        }
+
+        .mobile-btn:active {
+            background: rgba(0, 255, 136, 0.5);
+            transform: scale(0.9);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
+        }
+
+        .control-label {
+            color: #00ff88;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 5px;
+            opacity: 0.8;
         }
 
         button {
@@ -115,6 +177,8 @@
             background: rgba(255, 0, 0, 0.1);
             border: 2px solid #ff0000;
             color: #ff0000;
+            width: 100%;
+            max-width: 200px;
         }
 
         #reset-btn:hover {
@@ -146,97 +210,23 @@
             cursor: not-allowed;
         }
 
-        /* Contrôles mobiles */
-        #mobile-controls {
-            display: block;
-            margin: 10px 0;
-        }
-
-        .mobile-btn-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .mobile-btn-row {
-            display: flex;
-            gap: 20px;
-        }
-
-        .mobile-btn {
-            width: 50px;
-            height: 50px;
-            font-size: 24px;
-            background: rgba(0, 255, 136, 0.1);
-            border: 2px solid #00ff88;
-            border-radius: 50%;
-            color: #00ff88;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            user-select: none;
-            -webkit-user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        .mobile-btn:hover,
-        .mobile-btn:active {
-            background: rgba(0, 255, 136, 0.3);
-            transform: scale(0.95);
-            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
-        }
-
-        /* Animation pour les boutons tactiles */
-        @keyframes buttonPress {
-            0% { transform: scale(1); }
-            50% { transform: scale(0.9); }
-            100% { transform: scale(1); }
-        }
-
-        .mobile-btn:active {
-            animation: buttonPress 0.1s ease;
-        }
-
-        /* Masquer les contrôles mobiles sur desktop */
-        @media (min-width: 768px) {
-            #mobile-controls {
-                display: none;
-            }
-        }
-
-        @media (max-width: 600px) {
-            body {
-                padding: 20px;
-            }
-
-            #game {
-                width: 100%;
-                height: 100%;
-                max-width: 400px;
-                max-height: 400px;
-            }
-
-            #menu-container, #game-container {
-                width: 100%;
-                max-width: 400px;
-            }
-        }
-
-        /* Améliorer les contrôles sur très petits écrans */
         @media (max-width: 480px) {
+            body {
+                padding: 5px;
+            }
+            
+            #game {
+                height: 300px;
+            }
+            
             .mobile-btn {
-                width: 45px;
-                height: 45px;
-                font-size: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
             }
             
             .mobile-btn-row {
-                gap: 15px;
-            }
-
-            #game {
-                width: 320px;
-                height: 320px;
+                gap: 20px;
             }
         }
 
@@ -270,30 +260,260 @@
 </head>
 <body>
     <div id="menu-container">
-        <h1 style="color: #00ff88; text-shadow: 0 0 10px #00ff88;">🐍 CYBERSNAKE - MOBILE READY! 📱</h1>
+        <h1 style="color: #00ff88; text-shadow: 0 0 10px #00ff88; text-align: center;">🐍 CYBERSNAKE DEBUG 🔧</h1>
         <div id="difficulty-buttons">
             <button class="difficulty-button" data-level="easy">Easy</button>
             <button class="difficulty-button" data-level="medium">Medium</button>
             <button class="difficulty-button" data-level="hard">Hard</button>
         </div>
         <button id="start-game" disabled>Start Game</button>
-        <p style="color: #00ff88; font-size: 14px; text-align: center;">
-            📱 Mobile: Use touch gestures or buttons<br>
-            💻 Desktop: Use arrow keys
+        <p style="color: #00ff88; font-size: 12px; text-align: center; opacity: 0.8;">
+            📱 Open browser console to see debug logs<br>
+            Check if mobile controls work
         </p>
     </div>
 
     <div id="game-container">
-        <div id="game-title" style="color: #00ff88; text-shadow: 0 0 10px #00ff88; font-size: 2em; margin-bottom: 10px;">CyberSnake</div>
+        <div id="game-title" style="color: #00ff88; text-shadow: 0 0 10px #00ff88; font-size: 1.8em; margin-bottom: 10px;">CyberSnake</div>
         <div id="score">Score: 0</div>
         <div id="game"></div>
-        <!-- Les contrôles mobiles seront ajoutés ici dynamiquement -->
-        <div id="controls">
-            <button id="reset-btn">Reset</button>
+        
+        <!-- CONTRÔLES MOBILES STATIQUES -->
+        <div id="mobile-controls">
+            <div class="control-label">🎮 Mobile Controls</div>
+            <div class="mobile-btn-container">
+                <button class="mobile-btn" id="btn-up" type="button">⬆️</button>
+                <div class="mobile-btn-row">
+                    <button class="mobile-btn" id="btn-left" type="button">⬅️</button>
+                    <button class="mobile-btn" id="btn-right" type="button">➡️</button>
+                </div>
+                <button class="mobile-btn" id="btn-down" type="button">⬇️</button>
+            </div>
         </div>
+        
+        <button id="reset-btn">Reset Game</button>
         <div id="confetti"></div>
     </div>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    <script src="{{ url_for('static', filename='game.js') }}"></script>
+    <script>
+        // Version ultra-simple pour debug
+        class SimpleSnakeGame {
+            constructor() {
+                console.log('🚀 SimpleSnakeGame starting...');
+                
+                this.gridSize = 20;
+                this.snake = [{ x: 10, y: 10 }];
+                this.food = { x: 15, y: 15 };
+                this.direction = { x: 1, y: 0 };
+                this.score = 0;
+                this.gameRunning = false;
+                this.speed = 200;
+                this.gameInterval = null;
+                
+                this.init();
+            }
+            
+            init() {
+                console.log('🔧 Initializing game...');
+                
+                // Elements
+                this.gameGrid = document.getElementById('game');
+                this.scoreElement = document.getElementById('score');
+                this.menuContainer = document.getElementById('menu-container');
+                this.gameContainer = document.getElementById('game-container');
+                
+                // Difficulty buttons
+                document.querySelectorAll('.difficulty-button').forEach(btn => {
+                    btn.onclick = () => {
+                        document.querySelectorAll('.difficulty-button').forEach(b => b.classList.remove('selected'));
+                        btn.classList.add('selected');
+                        document.getElementById('start-game').disabled = false;
+                        console.log('✅ Difficulty selected:', btn.dataset.level);
+                    };
+                });
+                
+                // Start button
+                document.getElementById('start-game').onclick = () => {
+                    console.log('🎮 Starting game...');
+                    this.menuContainer.style.display = 'none';
+                    this.gameContainer.style.display = 'flex';
+                    this.startGame();
+                };
+                
+                // Reset button
+                document.getElementById('reset-btn').onclick = () => {
+                    console.log('🔄 Resetting game...');
+                    this.resetGame();
+                };
+                
+                // Mobile controls - VERSION SIMPLIFIÉE
+                this.setupMobileControls();
+                
+                // Keyboard
+                document.onkeydown = (e) => this.handleKey(e);
+                
+                console.log('✅ Game initialized');
+            }
+            
+            setupMobileControls() {
+                console.log('📱 Setting up mobile controls...');
+                
+                const controls = {
+                    'btn-up': { x: 0, y: -1 },
+                    'btn-down': { x: 0, y: 1 },
+                    'btn-left': { x: -1, y: 0 },
+                    'btn-right': { x: 1, y: 0 }
+                };
+                
+                Object.keys(controls).forEach(id => {
+                    const btn = document.getElementById(id);
+                    const dir = controls[id];
+                    
+                    if (btn) {
+                        // Multiple event types pour compatibility
+                        btn.ontouchstart = (e) => {
+                            e.preventDefault();
+                            console.log(`🔴 TOUCH: ${id} pressed`);
+                            this.changeDirection(dir);
+                        };
+                        
+                        btn.onclick = (e) => {
+                            e.preventDefault();
+                            console.log(`🔵 CLICK: ${id} pressed`);
+                            this.changeDirection(dir);
+                        };
+                        
+                        btn.onmousedown = (e) => {
+                            e.preventDefault();
+                            console.log(`🟡 MOUSE: ${id} pressed`);
+                            this.changeDirection(dir);
+                        };
+                        
+                        console.log(`✅ Events bound to ${id}`);
+                    } else {
+                        console.error(`❌ Button ${id} not found!`);
+                    }
+                });
+                
+                console.log('✅ Mobile controls ready');
+            }
+            
+            changeDirection(newDir) {
+                if (!this.gameRunning) {
+                    console.log('🚫 Game not running, ignoring direction change');
+                    return;
+                }
+                
+                // Prevent reverse direction
+                if ((newDir.x === -this.direction.x && newDir.y === -this.direction.y)) {
+                    console.log('🚫 Reverse direction blocked');
+                    return;
+                }
+                
+                console.log(`🎯 Direction change: ${JSON.stringify(this.direction)} → ${JSON.stringify(newDir)}`);
+                this.direction = newDir;
+            }
+            
+            handleKey(e) {
+                console.log(`⌨️ Key: ${e.key}`);
+                const keyMap = {
+                    'ArrowUp': { x: 0, y: -1 },
+                    'ArrowDown': { x: 0, y: 1 },
+                    'ArrowLeft': { x: -1, y: 0 },
+                    'ArrowRight': { x: 1, y: 0 }
+                };
+                
+                if (keyMap[e.key]) {
+                    this.changeDirection(keyMap[e.key]);
+                }
+            }
+            
+            startGame() {
+                this.gameRunning = true;
+                this.gameInterval = setInterval(() => this.update(), this.speed);
+                console.log('✅ Game loop started');
+            }
+            
+            update() {
+                if (!this.gameRunning) return;
+                
+                // Move snake
+                const head = { ...this.snake[0] };
+                head.x = (head.x + this.direction.x + this.gridSize) % this.gridSize;
+                head.y = (head.y + this.direction.y + this.gridSize) % this.gridSize;
+                
+                // Check collision with self
+                if (this.snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+                    this.gameOver();
+                    return;
+                }
+                
+                this.snake.unshift(head);
+                
+                // Check food
+                if (head.x === this.food.x && head.y === this.food.y) {
+                    this.score += 10;
+                    this.food = {
+                        x: Math.floor(Math.random() * this.gridSize),
+                        y: Math.floor(Math.random() * this.gridSize)
+                    };
+                    console.log('🍎 Food eaten! Score:', this.score);
+                } else {
+                    this.snake.pop();
+                }
+                
+                this.render();
+            }
+            
+            render() {
+                this.gameGrid.innerHTML = '';
+                this.scoreElement.textContent = `Score: ${this.score}`;
+                
+                // Create grid
+                for (let i = 0; i < this.gridSize * this.gridSize; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    this.gameGrid.appendChild(cell);
+                }
+                
+                // Draw snake
+                const cells = this.gameGrid.children;
+                this.snake.forEach(segment => {
+                    cells[segment.y * this.gridSize + segment.x].classList.add('snake');
+                });
+                
+                // Draw food
+                cells[this.food.y * this.gridSize + this.food.x].classList.add('food');
+            }
+            
+            gameOver() {
+                console.log('💀 Game Over!');
+                this.gameRunning = false;
+                clearInterval(this.gameInterval);
+                
+                setTimeout(() => {
+                    alert('Game Over! Score: ' + this.score);
+                    this.resetGame();
+                }, 100);
+            }
+            
+            resetGame() {
+                clearInterval(this.gameInterval);
+                this.snake = [{ x: 10, y: 10 }];
+                this.food = { x: 15, y: 15 };
+                this.direction = { x: 1, y: 0 };
+                this.score = 0;
+                this.gameRunning = false;
+                this.menuContainer.style.display = 'flex';
+                this.gameContainer.style.display = 'none';
+                console.log('🔄 Game reset');
+            }
+        }
+        
+        // Start the game
+        console.log('🚀 Loading CyberSnake...');
+        const game = new SimpleSnakeGame();
+    </script>
 </body>
 </html>
