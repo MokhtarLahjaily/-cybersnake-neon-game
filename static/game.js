@@ -1,5 +1,6 @@
 class SnakeGame {
     constructor() {
+        console.log('🐍 SnakeGame initialized');
         this.gridSize = 20;
         this.cellSize = 20;
         this.snake = [{ x: 10, y: 10 }];
@@ -28,14 +29,15 @@ class SnakeGame {
         this.touchStartY = 0;
         this.touchEndX = 0;
         this.touchEndY = 0;
-        this.threshold = 30; // Réduction du seuil pour plus de sensibilité
-        this.allowedTime = 500; // Augmentation du temps autorisé
+        this.threshold = 30;
+        this.allowedTime = 500;
         this.startTime = 0;
         
         this.setupGame();
     }
 
     setupGame() {
+        console.log('🔧 Setting up game');
         this.gameGrid = document.getElementById('game');
         this.scoreElement = document.getElementById('score');
         this.resetButton = document.getElementById('reset-btn');
@@ -55,6 +57,7 @@ class SnakeGame {
         });
 
         document.getElementById('start-game').addEventListener('click', () => {
+            console.log('🎮 Starting game');
             this.menuContainer.style.display = 'none';
             this.gameContainer.style.display = 'flex';
             this.startGame();
@@ -63,16 +66,20 @@ class SnakeGame {
         this.resetButton.addEventListener('click', () => this.resetGame());
         document.addEventListener('keydown', (e) => this.handleKeyPress(e));
 
-        // Mobile touch controls avec bind pour préserver le contexte
-        document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
-        document.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
-        document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
-
-        // Mobile direction buttons
+        // Setup mobile controls
         this.setupMobileControls();
+        this.setupTouchControls();
     }
 
     setupMobileControls() {
+        console.log('📱 Setting up mobile controls');
+        
+        // Vérifier si les boutons existent déjà
+        if (document.getElementById('mobile-controls')) {
+            console.log('📱 Mobile controls already exist');
+            return;
+        }
+
         // Créer les boutons directionnels pour mobile
         const mobileControls = document.createElement('div');
         mobileControls.id = 'mobile-controls';
@@ -87,71 +94,142 @@ class SnakeGame {
             </div>
         `;
         
-        // Insérer après le game grid
-        this.gameContainer.insertBefore(mobileControls, document.getElementById('controls'));
+        // Insérer avant les contrôles
+        const controlsElement = document.getElementById('controls');
+        if (controlsElement) {
+            this.gameContainer.insertBefore(mobileControls, controlsElement);
+            console.log('📱 Mobile buttons created');
+        }
         
-        // Event listeners pour les boutons
-        document.getElementById('btn-up').addEventListener('click', () => {
-            if (this.gameRunning && this.direction.y === 0) this.direction = { x: 0, y: -1 };
-        });
-        document.getElementById('btn-down').addEventListener('click', () => {
-            if (this.gameRunning && this.direction.y === 0) this.direction = { x: 0, y: 1 };
-        });
-        document.getElementById('btn-left').addEventListener('click', () => {
-            if (this.gameRunning && this.direction.x === 0) this.direction = { x: -1, y: 0 };
-        });
-        document.getElementById('btn-right').addEventListener('click', () => {
-            if (this.gameRunning && this.direction.x === 0) this.direction = { x: 1, y: 0 };
+        // Event listeners pour les boutons avec debug
+        this.setupButtonListeners();
+    }
+
+    setupButtonListeners() {
+        const buttons = [
+            { id: 'btn-up', direction: { x: 0, y: -1 }, condition: () => this.direction.y === 0 },
+            { id: 'btn-down', direction: { x: 0, y: 1 }, condition: () => this.direction.y === 0 },
+            { id: 'btn-left', direction: { x: -1, y: 0 }, condition: () => this.direction.x === 0 },
+            { id: 'btn-right', direction: { x: 1, y: 0 }, condition: () => this.direction.x === 0 }
+        ];
+
+        buttons.forEach(({ id, direction, condition }) => {
+            const button = document.getElementById(id);
+            if (button) {
+                // Touch events pour mobile
+                button.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    console.log(`🔴 Button ${id} touched`);
+                    if (this.gameRunning && condition()) {
+                        this.direction = direction;
+                        console.log(`🎯 Direction changed to`, direction);
+                    }
+                }, { passive: false });
+
+                // Click events pour desktop testing
+                button.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log(`🔵 Button ${id} clicked`);
+                    if (this.gameRunning && condition()) {
+                        this.direction = direction;
+                        console.log(`🎯 Direction changed to`, direction);
+                    }
+                });
+
+                console.log(`✅ Listeners added for ${id}`);
+            } else {
+                console.error(`❌ Button ${id} not found`);
+            }
         });
     }
 
-    handleTouchStart(e) {
-        if (!this.gameRunning) return;
+    setupTouchControls() {
+        console.log('👆 Setting up touch gestures');
         
+        // Bind touch events to the game area specifically
+        const gameArea = this.gameGrid;
+        if (gameArea) {
+            gameArea.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
+            gameArea.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
+            gameArea.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
+            console.log('✅ Touch events bound to game area');
+        }
+        
+        // Also bind to body as fallback
+        document.body.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
+        document.body.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
+        document.body.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
+        console.log('✅ Touch events bound to body');
+    }
+
+    handleTouchStart(e) {
+        if (!this.gameRunning) {
+            console.log('🚫 Touch ignored - game not running');
+            return;
+        }
+        
+        console.log('👆 Touch start detected');
         this.touchStartX = e.touches[0].clientX;
         this.touchStartY = e.touches[0].clientY;
         this.startTime = new Date().getTime();
         
-        // Empêcher le comportement par défaut
+        console.log(`👆 Touch start at: ${this.touchStartX}, ${this.touchStartY}`);
         e.preventDefault();
     }
 
     handleTouchEnd(e) {
-        if (!this.gameRunning) return;
+        if (!this.gameRunning) {
+            console.log('🚫 Touch end ignored - game not running');
+            return;
+        }
         
         this.touchEndX = e.changedTouches[0].clientX;
         this.touchEndY = e.changedTouches[0].clientY;
         const time = new Date().getTime() - this.startTime;
 
-        // Vérifier si le geste est valide
+        console.log(`👆 Touch end at: ${this.touchEndX}, ${this.touchEndY}, time: ${time}ms`);
+
         if (time < this.allowedTime) {
             const deltaX = this.touchEndX - this.touchStartX;
             const deltaY = this.touchEndY - this.touchStartY;
             const absDeltaX = Math.abs(deltaX);
             const absDeltaY = Math.abs(deltaY);
 
-            // Déterminer la direction du glissement
+            console.log(`📏 Delta: X=${deltaX}, Y=${deltaY}, AbsX=${absDeltaX}, AbsY=${absDeltaY}`);
+
             if (absDeltaX > this.threshold || absDeltaY > this.threshold) {
+                const oldDirection = { ...this.direction };
+                
                 if (absDeltaX > absDeltaY) {
-                    // Glissement horizontal
+                    // Horizontal swipe
                     if (deltaX > 0 && this.direction.x !== -1) {
-                        // Glissement vers la droite
                         this.direction = { x: 1, y: 0 };
+                        console.log('➡️ Swipe RIGHT detected');
                     } else if (deltaX < 0 && this.direction.x !== 1) {
-                        // Glissement vers la gauche
                         this.direction = { x: -1, y: 0 };
+                        console.log('⬅️ Swipe LEFT detected');
                     }
                 } else {
-                    // Glissement vertical
+                    // Vertical swipe
                     if (deltaY > 0 && this.direction.y !== -1) {
-                        // Glissement vers le bas
                         this.direction = { x: 0, y: 1 };
+                        console.log('⬇️ Swipe DOWN detected');
                     } else if (deltaY < 0 && this.direction.y !== 1) {
-                        // Glissement vers le haut
                         this.direction = { x: 0, y: -1 };
+                        console.log('⬆️ Swipe UP detected');
                     }
                 }
+                
+                if (oldDirection.x !== this.direction.x || oldDirection.y !== this.direction.y) {
+                    console.log(`🎯 Direction changed from ${JSON.stringify(oldDirection)} to ${JSON.stringify(this.direction)}`);
+                } else {
+                    console.log('🚫 Direction change blocked or same direction');
+                }
+            } else {
+                console.log('🚫 Swipe too short');
             }
+        } else {
+            console.log('🚫 Swipe too slow');
         }
         
         e.preventDefault();
@@ -164,6 +242,7 @@ class SnakeGame {
     }
 
     startGame() {
+        console.log('🚀 Game starting');
         if (!this.gameRunning) {
             this.gameRunning = true;
             this.updateScore();
@@ -174,17 +253,19 @@ class SnakeGame {
                 }
             }, this.speed[this.difficulty]);
 
-            // Start bomb timer
             this.bombInterval = setInterval(() => {
                 const settings = this.bombSettings[this.difficulty];
                 if (Math.random() < settings.spawnChance && this.bombs.length < settings.maxBombs) {
                     this.placeBomb();
                 }
-            }, 5000); // Bomb check every 5 seconds
+            }, 5000);
+            
+            console.log('✅ Game started successfully');
         }
     }
 
     resetGame() {
+        console.log('🔄 Resetting game');
         clearInterval(this.gameInterval);
         clearInterval(this.bombInterval);
         this.bombTimers.forEach(timer => clearTimeout(timer));
@@ -204,6 +285,9 @@ class SnakeGame {
     handleKeyPress(e) {
         if (!this.gameRunning) return;
         
+        console.log(`⌨️ Key pressed: ${e.key}`);
+        const oldDirection = { ...this.direction };
+        
         switch (e.key) {
             case 'ArrowUp':
                 if (this.direction.y === 0) this.direction = { x: 0, y: -1 };
@@ -217,6 +301,10 @@ class SnakeGame {
             case 'ArrowRight':
                 if (this.direction.x === 0) this.direction = { x: 1, y: 0 };
                 break;
+        }
+        
+        if (oldDirection.x !== this.direction.x || oldDirection.y !== this.direction.y) {
+            console.log(`🎯 Keyboard direction changed to ${JSON.stringify(this.direction)}`);
         }
     }
 
@@ -246,11 +334,9 @@ class SnakeGame {
     }
 
     placeBomb() {
-        // Generate new bomb
         const bomb = this.generateBomb();
         this.bombs.push(bomb);
         
-        // Set timer to remove bomb
         const settings = this.bombSettings[this.difficulty];
         const bombTimer = setTimeout(() => {
             const index = this.bombs.indexOf(bomb);
@@ -266,27 +352,23 @@ class SnakeGame {
     updateGame() {
         this.gameGrid.innerHTML = '';
         
-        // Create grid cells
         for (let i = 0; i < this.gridSize * this.gridSize; i++) {
             const cell = document.createElement('div');
             cell.className = 'cell';
             this.gameGrid.appendChild(cell);
         }
 
-        // Update snake position
         const newHead = {
             x: (this.snake[0].x + this.direction.x + this.gridSize) % this.gridSize,
             y: (this.snake[0].y + this.direction.y + this.gridSize) % this.gridSize
         };
 
-        // Check for collision with self
         if (this.snake.some(segment => segment.x === newHead.x && segment.y === newHead.y)) {
             this.gameRunning = false;
             this.showGameOver();
             return;
         }
 
-        // Check for bomb collision
         const bombHit = this.bombs.some(bomb => newHead.x === bomb.x && newHead.y === bomb.y);
         if (bombHit) {
             this.gameRunning = false;
@@ -294,10 +376,8 @@ class SnakeGame {
             return;
         }
 
-        // Add new head
         this.snake.unshift(newHead);
 
-        // Check for food collision
         if (newHead.x === this.food.x && newHead.y === this.food.y) {
             this.score += 10;
             this.updateScore();
@@ -307,7 +387,6 @@ class SnakeGame {
             this.snake.pop();
         }
 
-        // Update grid
         const cells = this.gameGrid.children;
         this.snake.forEach(segment => cells[segment.y * this.gridSize + segment.x].classList.add('snake'));
         cells[this.food.y * this.gridSize + this.food.x].classList.add('food');
@@ -341,6 +420,7 @@ class SnakeGame {
     }
 
     showGameOver(message = 'GAME OVER') {
+        console.log(`💀 Game Over: ${message}`);
         clearInterval(this.gameInterval);
         clearInterval(this.bombInterval);
         this.bombTimers.forEach(timer => clearTimeout(timer));
@@ -366,14 +446,8 @@ class SnakeGame {
     updateScore() {
         this.scoreElement.textContent = `Score: ${this.score}`;
     }
-
-    gameLoop() {
-        if (this.gameRunning) {
-            this.updateGame();
-            requestAnimationFrame(() => this.gameLoop());
-        }
-    }
 }
 
 // Initialize the game
+console.log('🚀 Initializing CyberSnake Game');
 const game = new SnakeGame();
