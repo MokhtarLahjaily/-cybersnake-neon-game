@@ -146,6 +146,64 @@
             cursor: not-allowed;
         }
 
+        /* Contrôles mobiles */
+        #mobile-controls {
+            display: block;
+            margin: 10px 0;
+        }
+
+        .mobile-btn-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .mobile-btn-row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .mobile-btn {
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid #00ff88;
+            border-radius: 50%;
+            color: #00ff88;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .mobile-btn:hover,
+        .mobile-btn:active {
+            background: rgba(0, 255, 136, 0.3);
+            transform: scale(0.95);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+        }
+
+        /* Animation pour les boutons tactiles */
+        @keyframes buttonPress {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+
+        .mobile-btn:active {
+            animation: buttonPress 0.1s ease;
+        }
+
+        /* Masquer les contrôles mobiles sur desktop */
+        @media (min-width: 768px) {
+            #mobile-controls {
+                display: none;
+            }
+        }
+
         @media (max-width: 600px) {
             body {
                 padding: 20px;
@@ -161,6 +219,24 @@
             #menu-container, #game-container {
                 width: 100%;
                 max-width: 400px;
+            }
+        }
+
+        /* Améliorer les contrôles sur très petits écrans */
+        @media (max-width: 480px) {
+            .mobile-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 20px;
+            }
+            
+            .mobile-btn-row {
+                gap: 15px;
+            }
+
+            #game {
+                width: 320px;
+                height: 320px;
             }
         }
 
@@ -183,23 +259,35 @@
             pointer-events: none;
             z-index: 1000;
         }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
     </style>
 </head>
 <body>
     <div id="menu-container">
-        <h1 style="color: #00ff88; text-shadow: 0 0 10px #00ff88;">🐍 CYBERSNAKE - CI/CD ACTIVE! 🚀</h1>
+        <h1 style="color: #00ff88; text-shadow: 0 0 10px #00ff88;">🐍 CYBERSNAKE - MOBILE READY! 📱</h1>
         <div id="difficulty-buttons">
             <button class="difficulty-button" data-level="easy">Easy</button>
             <button class="difficulty-button" data-level="medium">Medium</button>
             <button class="difficulty-button" data-level="hard">Hard</button>
         </div>
         <button id="start-game" disabled>Start Game</button>
+        <p style="color: #00ff88; font-size: 14px; text-align: center;">
+            📱 Mobile: Use touch gestures or buttons<br>
+            💻 Desktop: Use arrow keys
+        </p>
     </div>
 
     <div id="game-container">
         <div id="game-title" style="color: #00ff88; text-shadow: 0 0 10px #00ff88; font-size: 2em; margin-bottom: 10px;">CyberSnake</div>
         <div id="score">Score: 0</div>
         <div id="game"></div>
+        <!-- Les contrôles mobiles seront ajoutés ici dynamiquement -->
         <div id="controls">
             <button id="reset-btn">Reset</button>
         </div>

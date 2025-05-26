@@ -16,24 +16,22 @@ class SnakeGame {
             hard: 50
         };
         this.bombSettings = {
-            easy: {
-                maxBombs: 1,
-                spawnChance: 0.2,
-                lifespan: 10000
-            },
-            medium: {
-                maxBombs: 2,
-                spawnChance: 0.3,
-                lifespan: 8000
-            },
-            hard: {
-                maxBombs: 3,
-                spawnChance: 0.4,
-                lifespan: 6000
-            }
+            easy: { maxBombs: 1, spawnChance: 0.2, lifespan: 10000 },
+            medium: { maxBombs: 2, spawnChance: 0.3, lifespan: 8000 },
+            hard: { maxBombs: 3, spawnChance: 0.4, lifespan: 6000 }
         };
         this.gameInterval = null;
         this.bombInterval = null;
+        
+        // Touch control properties
+        this.touchStartX = 0;
+        this.touchStartY = 0;
+        this.touchEndX = 0;
+        this.touchEndY = 0;
+        this.threshold = 30; // Réduction du seuil pour plus de sensibilité
+        this.allowedTime = 500; // Augmentation du temps autorisé
+        this.startTime = 0;
+        
         this.setupGame();
     }
 
@@ -65,66 +63,104 @@ class SnakeGame {
         this.resetButton.addEventListener('click', () => this.resetGame());
         document.addEventListener('keydown', (e) => this.handleKeyPress(e));
 
-        // Gestion des gestes de glissement
-        let touchStartX = 0;
-        let touchStartY = 0;
-        let touchEndX = 0;
-        let touchEndY = 0;
-        let threshold = 50; // Distance minimale pour détecter un glissement
-        let allowedTime = 300; // Durée maximale pour un glissement
-        let startTime = 0;
+        // Mobile touch controls avec bind pour préserver le contexte
+        document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
+        document.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
+        document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
 
-        // Détecter le début du toucher
-        document.addEventListener('touchstart', (e) => {
-            if (!this.gameRunning) return;
-            
-            touchStartX = e.touches[0].clientX;
-            touchStartY = e.touches[0].clientY;
-            startTime = new Date().getTime();
+        // Mobile direction buttons
+        this.setupMobileControls();
+    }
+
+    setupMobileControls() {
+        // Créer les boutons directionnels pour mobile
+        const mobileControls = document.createElement('div');
+        mobileControls.id = 'mobile-controls';
+        mobileControls.innerHTML = `
+            <div class="mobile-btn-container">
+                <button class="mobile-btn" id="btn-up">⬆️</button>
+                <div class="mobile-btn-row">
+                    <button class="mobile-btn" id="btn-left">⬅️</button>
+                    <button class="mobile-btn" id="btn-right">➡️</button>
+                </div>
+                <button class="mobile-btn" id="btn-down">⬇️</button>
+            </div>
+        `;
+        
+        // Insérer après le game grid
+        this.gameContainer.insertBefore(mobileControls, document.getElementById('controls'));
+        
+        // Event listeners pour les boutons
+        document.getElementById('btn-up').addEventListener('click', () => {
+            if (this.gameRunning && this.direction.y === 0) this.direction = { x: 0, y: -1 };
         });
+        document.getElementById('btn-down').addEventListener('click', () => {
+            if (this.gameRunning && this.direction.y === 0) this.direction = { x: 0, y: 1 };
+        });
+        document.getElementById('btn-left').addEventListener('click', () => {
+            if (this.gameRunning && this.direction.x === 0) this.direction = { x: -1, y: 0 };
+        });
+        document.getElementById('btn-right').addEventListener('click', () => {
+            if (this.gameRunning && this.direction.x === 0) this.direction = { x: 1, y: 0 };
+        });
+    }
 
-        // Détecter la fin du toucher
-        document.addEventListener('touchend', (e) => {
-            if (!this.gameRunning) return;
-            
-            touchEndX = e.changedTouches[0].clientX;
-            touchEndY = e.changedTouches[0].clientY;
-            const time = new Date().getTime() - startTime;
+    handleTouchStart(e) {
+        if (!this.gameRunning) return;
+        
+        this.touchStartX = e.touches[0].clientX;
+        this.touchStartY = e.touches[0].clientY;
+        this.startTime = new Date().getTime();
+        
+        // Empêcher le comportement par défaut
+        e.preventDefault();
+    }
 
-            // Vérifier si le geste est valide
-            if (time < allowedTime) {
-                const deltaX = touchEndX - touchStartX;
-                const deltaY = touchEndY - touchStartY;
+    handleTouchEnd(e) {
+        if (!this.gameRunning) return;
+        
+        this.touchEndX = e.changedTouches[0].clientX;
+        this.touchEndY = e.changedTouches[0].clientY;
+        const time = new Date().getTime() - this.startTime;
 
-                // Déterminer la direction du glissement
-                if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > threshold) {
+        // Vérifier si le geste est valide
+        if (time < this.allowedTime) {
+            const deltaX = this.touchEndX - this.touchStartX;
+            const deltaY = this.touchEndY - this.touchStartY;
+            const absDeltaX = Math.abs(deltaX);
+            const absDeltaY = Math.abs(deltaY);
+
+            // Déterminer la direction du glissement
+            if (absDeltaX > this.threshold || absDeltaY > this.threshold) {
+                if (absDeltaX > absDeltaY) {
                     // Glissement horizontal
-                    if (deltaX > 0) {
+                    if (deltaX > 0 && this.direction.x !== -1) {
                         // Glissement vers la droite
-                        if (this.direction.y === 0) this.direction = { x: 1, y: 0 };
-                    } else {
+                        this.direction = { x: 1, y: 0 };
+                    } else if (deltaX < 0 && this.direction.x !== 1) {
                         // Glissement vers la gauche
-                        if (this.direction.y === 0) this.direction = { x: -1, y: 0 };
+                        this.direction = { x: -1, y: 0 };
                     }
-                } else if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > threshold) {
+                } else {
                     // Glissement vertical
-                    if (deltaY > 0) {
+                    if (deltaY > 0 && this.direction.y !== -1) {
                         // Glissement vers le bas
-                        if (this.direction.x === 0) this.direction = { x: 0, y: 1 };
-                    } else {
+                        this.direction = { x: 0, y: 1 };
+                    } else if (deltaY < 0 && this.direction.y !== 1) {
                         // Glissement vers le haut
-                        if (this.direction.x === 0) this.direction = { x: 0, y: -1 };
+                        this.direction = { x: 0, y: -1 };
                     }
                 }
             }
-        });
+        }
+        
+        e.preventDefault();
+    }
 
-        // Empêcher le défilement de la page pendant le jeu
-        document.addEventListener('touchmove', (e) => {
-            if (this.gameRunning) {
-                e.preventDefault();
-            }
-        }, { passive: false });
+    handleTouchMove(e) {
+        if (this.gameRunning) {
+            e.preventDefault();
+        }
     }
 
     startGame() {
