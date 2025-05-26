@@ -2,36 +2,20 @@ class SnakeGame {
     constructor() {
         console.log('🐍 SnakeGame initialized');
         this.gridSize = 20;
-        this.cellSize = 20;
         this.snake = [{ x: 10, y: 10 }];
         this.food = this.generateFood();
-        this.bombs = [];
-        this.bombTimers = [];
         this.direction = { x: 1, y: 0 };
         this.score = 0;
         this.gameRunning = false;
-        this.difficulty = 'easy';
-        this.speed = {
-            easy: 150,
-            medium: 100,
-            hard: 50
-        };
-        this.bombSettings = {
-            easy: { maxBombs: 1, spawnChance: 0.2, lifespan: 10000 },
-            medium: { maxBombs: 2, spawnChance: 0.3, lifespan: 8000 },
-            hard: { maxBombs: 3, spawnChance: 0.4, lifespan: 6000 }
-        };
-        this.gameInterval = null;
-        this.bombInterval = null;
+        this.speed = 150;
         
-        // Touch control properties
+        // Mobile controls
         this.touchStartX = 0;
         this.touchStartY = 0;
         this.touchEndX = 0;
         this.touchEndY = 0;
         this.threshold = 30;
         this.allowedTime = 500;
-        this.startTime = 0;
         
         this.setupGame();
     }
@@ -43,19 +27,8 @@ class SnakeGame {
         this.resetButton = document.getElementById('reset-btn');
         this.menuContainer = document.getElementById('menu-container');
         this.gameContainer = document.getElementById('game-container');
-        this.confetti = document.getElementById('confetti');
 
-        // Difficulty buttons
-        const difficultyButtons = document.querySelectorAll('.difficulty-button');
-        difficultyButtons.forEach(button => {
-            button.addEventListener('click', () => {
-                difficultyButtons.forEach(btn => btn.classList.remove('selected'));
-                button.classList.add('selected');
-                this.difficulty = button.dataset.level;
-                document.getElementById('start-game').disabled = false;
-            });
-        });
-
+        // Start button
         document.getElementById('start-game').addEventListener('click', () => {
             console.log('🎮 Starting game');
             this.menuContainer.style.display = 'none';
@@ -63,11 +36,10 @@ class SnakeGame {
             this.startGame();
         });
 
+        // Reset button
         this.resetButton.addEventListener('click', () => this.resetGame());
-        document.addEventListener('keydown', (e) => this.handleKeyPress(e));
 
         // Setup mobile controls
-        this.setupMobileControls();
         this.setupTouchControls();
     }
 
@@ -144,100 +116,58 @@ class SnakeGame {
     }
 
     setupTouchControls() {
-        console.log('👆 Setting up touch gestures');
+        console.log('📱 Setting up touch controls');
         
-        // Bind touch events to the game area specifically
+        // Bind touch events to the game area
         const gameArea = this.gameGrid;
         if (gameArea) {
-            gameArea.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
-            gameArea.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
-            gameArea.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
-            console.log('✅ Touch events bound to game area');
-        }
-        
-        // Also bind to body as fallback
-        document.body.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
-        document.body.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
-        document.body.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
-        console.log('✅ Touch events bound to body');
-    }
-
-    handleTouchStart(e) {
-        if (!this.gameRunning) {
-            console.log('🚫 Touch ignored - game not running');
-            return;
-        }
-        
-        console.log('👆 Touch start detected');
-        this.touchStartX = e.touches[0].clientX;
-        this.touchStartY = e.touches[0].clientY;
-        this.startTime = new Date().getTime();
-        
-        console.log(`👆 Touch start at: ${this.touchStartX}, ${this.touchStartY}`);
-        e.preventDefault();
-    }
-
-    handleTouchEnd(e) {
-        if (!this.gameRunning) {
-            console.log('🚫 Touch end ignored - game not running');
-            return;
-        }
-        
-        this.touchEndX = e.changedTouches[0].clientX;
-        this.touchEndY = e.changedTouches[0].clientY;
-        const time = new Date().getTime() - this.startTime;
-
-        console.log(`👆 Touch end at: ${this.touchEndX}, ${this.touchEndY}, time: ${time}ms`);
-
-        if (time < this.allowedTime) {
-            const deltaX = this.touchEndX - this.touchStartX;
-            const deltaY = this.touchEndY - this.touchStartY;
-            const absDeltaX = Math.abs(deltaX);
-            const absDeltaY = Math.abs(deltaY);
-
-            console.log(`📏 Delta: X=${deltaX}, Y=${deltaY}, AbsX=${absDeltaX}, AbsY=${absDeltaY}`);
-
-            if (absDeltaX > this.threshold || absDeltaY > this.threshold) {
-                const oldDirection = { ...this.direction };
+            gameArea.addEventListener('touchstart', (e) => {
+                if (!this.gameRunning) return;
                 
-                if (absDeltaX > absDeltaY) {
+                this.touchStartX = e.touches[0].clientX;
+                this.touchStartY = e.touches[0].clientY;
+                this.startTime = new Date().getTime();
+                
+                e.preventDefault();
+            }, { passive: false });
+
+            gameArea.addEventListener('touchend', (e) => {
+                if (!this.gameRunning) return;
+                
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                const time = new Date().getTime() - this.startTime;
+
+                if (time < this.allowedTime) {
+                    const deltaX = touchEndX - this.touchStartX;
+                    const deltaY = touchEndY - this.touchStartY;
+                    
                     // Horizontal swipe
-                    if (deltaX > 0 && this.direction.x !== -1) {
-                        this.direction = { x: 1, y: 0 };
-                        console.log('➡️ Swipe RIGHT detected');
-                    } else if (deltaX < 0 && this.direction.x !== 1) {
-                        this.direction = { x: -1, y: 0 };
-                        console.log('⬅️ Swipe LEFT detected');
+                    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > this.threshold) {
+                        if (deltaX > 0 && this.direction.x !== -1) {
+                            this.direction = { x: 1, y: 0 };
+                        } else if (deltaX < 0 && this.direction.x !== 1) {
+                            this.direction = { x: -1, y: 0 };
+                        }
                     }
-                } else {
                     // Vertical swipe
-                    if (deltaY > 0 && this.direction.y !== -1) {
-                        this.direction = { x: 0, y: 1 };
-                        console.log('⬇️ Swipe DOWN detected');
-                    } else if (deltaY < 0 && this.direction.y !== 1) {
-                        this.direction = { x: 0, y: -1 };
-                        console.log('⬆️ Swipe UP detected');
+                    else if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > this.threshold) {
+                        if (deltaY > 0 && this.direction.y !== -1) {
+                            this.direction = { x: 0, y: 1 };
+                        } else if (deltaY < 0 && this.direction.y !== 1) {
+                            this.direction = { x: 0, y: -1 };
+                        }
                     }
                 }
                 
-                if (oldDirection.x !== this.direction.x || oldDirection.y !== this.direction.y) {
-                    console.log(`🎯 Direction changed from ${JSON.stringify(oldDirection)} to ${JSON.stringify(this.direction)}`);
-                } else {
-                    console.log('🚫 Direction change blocked or same direction');
-                }
-            } else {
-                console.log('🚫 Swipe too short');
-            }
-        } else {
-            console.log('🚫 Swipe too slow');
-        }
-        
-        e.preventDefault();
-    }
+                e.preventDefault();
+            }, { passive: false });
 
-    handleTouchMove(e) {
-        if (this.gameRunning) {
-            e.preventDefault();
+            gameArea.addEventListener('touchmove', (e) => {
+                if (this.gameRunning) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
         }
     }
 
