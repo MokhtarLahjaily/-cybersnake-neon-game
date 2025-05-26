@@ -1,0 +1,45 @@
+name: Deploy CyberSnake to Azure
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: cybersnakeregistry.azurecr.io
+  IMAGE_NAME: cybersnake-game
+  WEBAPP_NAME: cybersnake-webapp-emsi
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: 🏗️ Build Docker Image
+      run: |
+        docker build -t ${{ env.IMAGE_NAME }}:${{ github.sha }} .
+        docker tag ${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        docker tag ${{ env.IMAGE_NAME }}:${{ github.sha }} ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+    
+    - name: 🐳 Push to Azure Container Registry
+      run: |
+        echo ${{ secrets.ACR_PASSWORD }} | docker login ${{ env.REGISTRY }} -u cybersnakeregistry --password-stdin
+        docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+    
+    - name: 🚀 Deploy to Azure Web App
+      uses: azure/webapps-deploy@v3
+      with:
+        app-name: ${{ env.WEBAPP_NAME }}
+        publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+    
+    - name: ✅ Deployment Success
+      run: |
+        echo "🎉 Deployment completed successfully!"
+        echo "🌐 Your app: https://${{ env.WEBAPP_NAME }}.azurewebsites.net"
+        echo "🆔 Deployed version: ${{ github.sha }}"
