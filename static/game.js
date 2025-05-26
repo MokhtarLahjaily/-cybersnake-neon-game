@@ -44,7 +44,6 @@ class SnakeGame {
         this.menuContainer = document.getElementById('menu-container');
         this.gameContainer = document.getElementById('game-container');
         this.confetti = document.getElementById('confetti');
-        this.directionButtons = document.querySelectorAll('.direction-btn');
 
         // Difficulty buttons
         const difficultyButtons = document.querySelectorAll('.difficulty-button');
@@ -65,70 +64,67 @@ class SnakeGame {
 
         this.resetButton.addEventListener('click', () => this.resetGame());
         document.addEventListener('keydown', (e) => this.handleKeyPress(e));
-        
-        // Ajout du support tactile
+
+        // Gestion des gestes de glissement
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+        let threshold = 50; // Distance minimale pour détecter un glissement
+        let allowedTime = 300; // Durée maximale pour un glissement
+        let startTime = 0;
+
+        // Détecter le début du toucher
         document.addEventListener('touchstart', (e) => {
             if (!this.gameRunning) return;
             
-            const touch = e.touches[0];
-            const rect = this.gameGrid.getBoundingClientRect();
-            const x = touch.clientX - rect.left;
-            const y = touch.clientY - rect.top;
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            startTime = new Date().getTime();
+        });
+
+        // Détecter la fin du toucher
+        document.addEventListener('touchend', (e) => {
+            if (!this.gameRunning) return;
             
-            // Diviser la grille en 4 zones pour le contrôle
-            if (x < centerX && y < centerY) {
-                // Haut-Gauche
-                if (this.direction.y === 0) this.direction = { x: -1, y: 0 };
-            } else if (x > centerX && y < centerY) {
-                // Haut-Droite
-                if (this.direction.y === 0) this.direction = { x: 1, y: 0 };
-            } else if (x < centerX && y > centerY) {
-                // Bas-Gauche
-                if (this.direction.x === 0) this.direction = { x: 0, y: 1 };
-            } else if (x > centerX && y > centerY) {
-                // Bas-Droite
-                if (this.direction.x === 0) this.direction = { x: 0, y: -1 };
-            }
-        });
+            touchEndX = e.changedTouches[0].clientX;
+            touchEndY = e.changedTouches[0].clientY;
+            const time = new Date().getTime() - startTime;
 
-        // Gestion des boutons de direction
-        this.directionButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                if (!this.gameRunning) return;
-                
-                const direction = e.currentTarget.dataset.direction;
-                switch (direction) {
-                    case 'up':
-                        if (this.direction.y === 0) this.direction = { x: 0, y: -1 };
-                        break;
-                    case 'down':
-                        if (this.direction.y === 0) this.direction = { x: 0, y: 1 };
-                        break;
-                    case 'left':
-                        if (this.direction.x === 0) this.direction = { x: -1, y: 0 };
-                        break;
-                    case 'right':
-                        if (this.direction.x === 0) this.direction = { x: 1, y: 0 };
-                        break;
+            // Vérifier si le geste est valide
+            if (time < allowedTime) {
+                const deltaX = touchEndX - touchStartX;
+                const deltaY = touchEndY - touchStartY;
+
+                // Déterminer la direction du glissement
+                if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > threshold) {
+                    // Glissement horizontal
+                    if (deltaX > 0) {
+                        // Glissement vers la droite
+                        if (this.direction.y === 0) this.direction = { x: 1, y: 0 };
+                    } else {
+                        // Glissement vers la gauche
+                        if (this.direction.y === 0) this.direction = { x: -1, y: 0 };
+                    }
+                } else if (Math.abs(deltaY) > Math.abs(deltaX) && Math.abs(deltaY) > threshold) {
+                    // Glissement vertical
+                    if (deltaY > 0) {
+                        // Glissement vers le bas
+                        if (this.direction.x === 0) this.direction = { x: 0, y: 1 };
+                    } else {
+                        // Glissement vers le haut
+                        if (this.direction.x === 0) this.direction = { x: 0, y: -1 };
+                    }
                 }
-            });
-        });
-
-        // Ajouter une classe pour les boutons de direction sur mobile
-        if (window.innerWidth <= 600) {
-            document.body.classList.add('mobile');
-        }
-
-        // Écouter les changements de taille de l'écran
-        window.addEventListener('resize', () => {
-            if (window.innerWidth <= 600) {
-                document.body.classList.add('mobile');
-            } else {
-                document.body.classList.remove('mobile');
             }
         });
+
+        // Empêcher le défilement de la page pendant le jeu
+        document.addEventListener('touchmove', (e) => {
+            if (this.gameRunning) {
+                e.preventDefault();
+            }
+        }, { passive: false });
     }
 
     startGame() {
@@ -196,7 +192,7 @@ class SnakeGame {
                 y: Math.floor(Math.random() * this.gridSize)
             };
         } while (this.snake.some(segment => segment.x === food.x && segment.y === food.y) || 
-                (this.bomb && this.bomb.x === food.x && this.bomb.y === food.y));
+                this.bombs.some(bomb => bomb.x === food.x && bomb.y === food.y));
         return food;
     }
 
