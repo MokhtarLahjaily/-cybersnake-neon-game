@@ -64,6 +64,33 @@ class SnakeGame {
 
         this.resetButton.addEventListener('click', () => this.resetGame());
         document.addEventListener('keydown', (e) => this.handleKeyPress(e));
+        
+        // Ajout du support tactile
+        document.addEventListener('touchstart', (e) => {
+            if (!this.gameRunning) return;
+            
+            const touch = e.touches[0];
+            const rect = this.gameGrid.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            
+            // Diviser la grille en 4 zones pour le contrôle
+            if (x < centerX && y < centerY) {
+                // Haut-Gauche
+                if (this.direction.y === 0) this.direction = { x: -1, y: 0 };
+            } else if (x > centerX && y < centerY) {
+                // Haut-Droite
+                if (this.direction.y === 0) this.direction = { x: 1, y: 0 };
+            } else if (x < centerX && y > centerY) {
+                // Bas-Gauche
+                if (this.direction.x === 0) this.direction = { x: 0, y: 1 };
+            } else if (x > centerX && y > centerY) {
+                // Bas-Droite
+                if (this.direction.x === 0) this.direction = { x: 0, y: -1 };
+            }
+        });
     }
 
     startGame() {
