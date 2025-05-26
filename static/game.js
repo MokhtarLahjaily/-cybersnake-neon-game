@@ -44,6 +44,7 @@ class SnakeGame {
         this.menuContainer = document.getElementById('menu-container');
         this.gameContainer = document.getElementById('game-container');
         this.confetti = document.getElementById('confetti');
+        this.directionButtons = document.querySelectorAll('.direction-btn');
 
         // Difficulty buttons
         const difficultyButtons = document.querySelectorAll('.difficulty-button');
@@ -89,6 +90,43 @@ class SnakeGame {
             } else if (x > centerX && y > centerY) {
                 // Bas-Droite
                 if (this.direction.x === 0) this.direction = { x: 0, y: -1 };
+            }
+        });
+
+        // Gestion des boutons de direction
+        this.directionButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                if (!this.gameRunning) return;
+                
+                const direction = e.currentTarget.dataset.direction;
+                switch (direction) {
+                    case 'up':
+                        if (this.direction.y === 0) this.direction = { x: 0, y: -1 };
+                        break;
+                    case 'down':
+                        if (this.direction.y === 0) this.direction = { x: 0, y: 1 };
+                        break;
+                    case 'left':
+                        if (this.direction.x === 0) this.direction = { x: -1, y: 0 };
+                        break;
+                    case 'right':
+                        if (this.direction.x === 0) this.direction = { x: 1, y: 0 };
+                        break;
+                }
+            });
+        });
+
+        // Ajouter une classe pour les boutons de direction sur mobile
+        if (window.innerWidth <= 600) {
+            document.body.classList.add('mobile');
+        }
+
+        // Écouter les changements de taille de l'écran
+        window.addEventListener('resize', () => {
+            if (window.innerWidth <= 600) {
+                document.body.classList.add('mobile');
+            } else {
+                document.body.classList.remove('mobile');
             }
         });
     }
